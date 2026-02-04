@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}{% if session.get('language') == 'ar' %}إنشاء حساب{% else %}Sign Up{% endif %} - The Kitchen{% endblock
+%}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-utensils fa-3x text-primary mb-3"></i>
+                        <h2>
+                            <span class="signup-en">Create Account</span>
+                            <span class="signup-ar" style="display:none;">إنشاء حساب</span>
+                        </h2>
+                        <p class="text-muted">
+                            <span class="signup-en">Join us for delicious food experiences</span>
+                            <span class="signup-ar" style="display:none;">انضم إلينا لتجارب طعام لذيذة</span>
+                        </p>
+                    </div>
+
+                    <form id="signup-form">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">
+                                <span class="signup-en">Full Name</span>
+                                <span class="signup-ar" style="display:none;">الاسم الكامل</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <span class="signup-en">Email Address</span>
+                                <span class="signup-ar" style="display:none;">البريد الإلكتروني</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">
+                                <span class="signup-en">Phone Number</span>
+                                <span class="signup-ar" style="display:none;">رقم الهاتف</span>
+                                <small class="text-muted">(<span class="signup-en">optional</span><span
+                                        class="signup-ar" style="display:none;">اختياري</span>)</small>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                    placeholder="01012345678">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <span class="signup-en">Password</span>
+                                <span class="signup-ar" style="display:none;">كلمة المرور</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('password')">
+                                    <i class="fas fa-eye" id="password-eye"></i>
+                                </button>
+                            </div>
+                            <div class="progress mt-2" style="height: 4px;">
+                                <div class="progress-bar" id="password-strength" role="progressbar" style="width: 0%">
+                                </div>
+                            </div>
+                            <small class="text-muted" id="password-help">
+                                <span class="signup-en">Use 8+ characters with mixed case and numbers</span>
+                                <span class="signup-ar" style="display:none;">استخدم 8+ أحرف مع حالة مختلقة
+                                    وأرقام</span>
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm-password" class="form-label">
+                                <span class="signup-en">Confirm Password</span>
+                                <span class="signup-ar" style="display:none;">تأكيد كلمة المرور</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="confirm-password"
+                                    name="confirm-password" required>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('confirm-password')">
+                                    <i class="fas fa-eye" id="confirm-password-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="confirm-password-error">
+                                <span class="signup-en">Passwords do not match</span>
+                                <span class="signup-ar" style="display:none;">كلمات المرور غير متطابقة</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    <span class="signup-en">I agree to the</span>
+                                    <span class="signup-ar" style="display:none;">أوافق على</span>
+                                    <a href="#" class="text-primary">
+                                        <span class="signup-en">Terms & Conditions</span>
+                                        <span class="signup-ar" style="display:none;">الشروط والأحكام</span>
+                                    </a>
+                                    <span class="signup-en">and</span>
+                                    <span class="signup-ar" style="display:none;">و</span>
+                                    <a href="#" class="text-primary">
+                                        <span class="signup-en">Privacy Policy</span>
+                                        <span class="signup-ar" style="display:none;">سياسة الخصوصية</span>
+                                    </a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="signup-btn">
+                                <i class="fas fa-user-plus me-2"></i>
+                                <span class="signup-en">Create Account</span>
+                                <span class="signup-ar" style="display:none;">إنشاء حساب</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-0">
+                            <span class="signup-en">Already have an account?</span>
+                            <span class="signup-ar" style="display:none;">لديك حساب بالفعل؟</span>
+                            <a href="{{ url_for('signin') }}" class="text-primary">
+                                <span class="signup-en">Sign In</span>
+                                <span class="signup-ar" style="display:none;">تسجيل الدخول</span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        let strength = 0;
+
+        if (password.length >= 8) strength += 25;
+        if (password.length >= 12) strength += 25;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+        if (/\d/.test(password)) strength += 12.5;
+        if (/[^a-zA-Z\d]/.test(password)) strength += 12.5;
+
+        return strength;
+    }
+
+    // Update password strength indicator
+    document.getElementById('password').addEventListener('input', function (e) {
+        const password = e.target.value;
+        const strength = checkPasswordStrength(password);
+        const progressBar = document.getElementById('password-strength');
+
+        progressBar.style.width = strength + '%';
+
+        if (strength < 30) {
+            progressBar.className = 'progress-bar bg-danger';
+        } else if (strength < 60) {
+            progressBar.className = 'progress-bar bg-warning';
+        } else if (strength < 80) {
+            progressBar.className = 'progress-bar bg-info';
+        } else {
+            progressBar.className = 'progress-bar bg-success';
+        }
+    });
+
+    // Toggle password visibility
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const eye = document.getElementById(fieldId + '-eye');
+
+        if (field.type === 'password') {
+            field.type = 'text';
+            eye.className = 'fas fa-eye-slash';
+        } else {
+            field.type = 'password';
+            eye.className = 'fas fa-eye';
+        }
+    }
+
+    // Check password match
+    document.getElementById('confirm-password').addEventListener('input', function (e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = e.target.value;
+        const errorDiv = document.getElementById('confirm-password-error');
+
+        if (confirmPassword && password !== confirmPassword) {
+            e.target.classList.add('is-invalid');
+            errorDiv.style.display = 'block';
+        } else {
+            e.target.classList.remove('is-invalid');
+            errorDiv.style.display = 'none';
+        }
+    });
+
+    // Form submission
+    document.getElementById('signup-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (password !== confirmPassword) {
+            showToast('Passwords do not match', 'error');
+            return;
+        }
+
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim().toLowerCase(),
+            phone: document.getElementById('phone').value.trim(),
+            password: password
+        };
+
+        const submitBtn = document.getElementById('signup-btn');
+        const originalText = submitBtn.innerHTML;
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span class="signup-en">Creating Account...</span><span class="signup-ar" style="display:none;">جاري إنشاء الحساب...</span>';
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                showToast('Account created successfully!', 'success');
+
+                // Redirect to menu after delay
+                setTimeout(() => {
+                    window.location.href = '/menu';
+                }, 1500);
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            showToast('Error creating account', 'error');
+        } finally {
+            // Reset button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+        document.body.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}{% if session.get('language') == 'ar' %}القائمة{% else %}Menu{% endif %} - The Kitchen{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="text-center mb-4">
+                <span class="menu-en">Our Menu</span>
+                <span class="menu-ar" style="display:none;">قائمتنا</span>
+            </h1>
+
+            <!-- Category Filter -->
+            <div class="text-center mb-4">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-category="all">
+                        <span class="filter-en">All</span>
+                        <span class="filter-ar" style="display:none;">الكل</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-category="main">
+                        <span class="filter-en">Main Dishes</span>
+                        <span class="filter-ar" style="display:none;">الأطباق الرئيسية</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-category="appetizer">
+                        <span class="filter-en">Appetizers</span>
+                        <span class="filter-ar" style="display:none;">المقبلات</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-category="dessert">
+                        <span class="filter-en">Desserts</span>
+                        <span class="filter-ar" style="display:none;">الحلويات</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" data-category="drink">
+                        <span class="filter-en">Drinks</span>
+                        <span class="filter-ar" style="display:none;">المشروبات</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="search-input"
+                            placeholder="{% if session.get('language') == 'ar' %]ابحث عن طبق...{% else %]Search for a dish...{% endif %}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Items Grid -->
+    <div class="row" id="menu-items">
+        <!-- Items will be loaded via JavaScript -->
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="text-center" id="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="text-center py-5" id="empty-state" style="display:none;">
+        <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">
+            <span class="empty-en">No items found</span>
+            <span class="empty-ar" style="display:none;">لم يتم العثور على عناصر</span>
+        </h4>
+        <p class="text-muted">
+            <span class="empty-en">Try adjusting your search or filter</span>
+            <span class="empty-ar" style="display:none;">حاول تعديل البحث أو الفلتر</span>
+        </p>
+    </div>
+</div>
+
+<!-- Item Detail Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Item Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <span class="modal-en">Close</span>
+                    <span class="modal-ar" style="display:none;">إغلاق</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="addToCartBtn">
+                    <i class="fas fa-cart-plus me-2"></i>
+                    <span class="modal-en">Add to Cart</span>
+                    <span class="modal-ar" style="display:none;">أضف إلى السلة</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let menuItems = [];
+    let currentItem = null;
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    // Load menu items
+    async function loadMenuItems() {
+        try {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('menu-items').innerHTML = '';
+            document.getElementById('empty-state').style.display = 'none';
+
+            const response = await fetch('/api/menu/available');
+            const data = await response.json();
+
+            if (data.ok) {
+                menuItems = data.items;
+                displayMenuItems(menuItems);
+            } else {
+                showToast('Error loading menu', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading menu items:', error);
+            showToast('Error loading menu', 'error');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+
+    // Display menu items
+    function displayMenuItems(items) {
+        const container = document.getElementById('menu-items');
+
+        if (items.length === 0) {
+            document.getElementById('empty-state').style.display = 'block';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        items.forEach(item => {
+            const itemCard = `
+            <div class="col-md-6 col-lg-4 mb-4 menu-item" data-category="${item.category}">
+                <div class="card h-100 menu-card">
+                    <div class="position-relative">
+                        <img src="${item.image_urls[0] || '/static/images/placeholder.jpg'}" 
+                             class="card-img-top menu-item-image" 
+                             alt="${item.name}"
+                             onclick="showItemDetail(${item.id})">
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <span class="badge bg-success">${item.price} EGP</span>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">${item.name}</h5>
+                        <p class="card-text flex-grow-1">${item.description}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="h5 text-primary mb-0">${item.price} EGP</span>
+                            <div class="btn-group">
+                                <button class="btn btn-outline-primary btn-sm" onclick="showItemDetail(${item.id})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm" onclick="quickAddToCart(${item.id})">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+            container.innerHTML += itemCard;
+        });
+    }
+
+    // Show item detail modal
+    async function showItemDetail(itemId) {
+        currentItem = menuItems.find(item => item.id === itemId);
+
+        if (!currentItem) return;
+
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+
+        modalTitle.textContent = currentItem.name;
+
+        modalBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <img src="${currentItem.image_urls[0] || '/static/images/placeholder.jpg'}" 
+                     class="img-fluid rounded" 
+                     alt="${currentItem.name}">
+                ${currentItem.image_urls.length > 1 ? `
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <span class="modal-en">More images available</span>
+                            <span class="modal-ar" style="display:none;">صور إضافية متاحة</span>
+                        </small>
+                    </div>
+                ` : ''}
+            </div>
+            <div class="col-md-6">
+                <h4>${currentItem.name}</h4>
+                <p>${currentItem.description}</p>
+                <div class="mb-3">
+                    <span class="h4 text-primary">${currentItem.price} EGP</span>
+                </div>
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">
+                        <span class="modal-en">Quantity</span>
+                        <span class="modal-ar" style="display:none;">الكمية</span>
+                    </label>
+                    <div class="input-group" style="width: 150px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
+                        <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="99">
+                        <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="notes" class="form-label">
+                        <span class="modal-en">Special Notes</span>
+                        <span class="modal-ar" style="display:none;">ملاحظات خاصة</span>
+                        <small class="text-muted">(<span class="modal-en">optional</span><span class="modal-ar" style="display:none;">اختياري</span>)</small>
+                    </label>
+                    <textarea class="form-control" id="notes" rows="2" 
+                              placeholder="{% if session.get('language') == 'ar' %]مثال: بدون بصل{% else %]e.g., no onions{% endif %}"></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+
+        const modal = new bootstrap.Modal(document.getElementById('itemModal'));
+        modal.show();
+    }
+
+    // Quantity controls
+    function increaseQuantity() {
+        const input = document.getElementById('quantity');
+        input.value = Math.min(99, parseInt(input.value) + 1);
+    }
+
+    function decreaseQuantity() {
+        const input = document.getElementById('quantity');
+        input.value = Math.max(1, parseInt(input.value) - 1);
+    }
+
+    // Quick add to cart
+    async function quickAddToCart(itemId) {
+        await addToCart(itemId, 1, '');
+    }
+
+    // Add to cart from modal
+    document.getElementById('addToCartBtn').addEventListener('click', async function () {
+        if (!currentItem) return;
+
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const notes = document.getElementById('notes').value;
+
+        await addToCart(currentItem.id, quantity, notes);
+
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('itemModal'));
+        modal.hide();
+    });
+
+    // Add to cart function
+    async function addToCart(itemId, quantity = 1, notes = '') {
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    menu_item_id: itemId,
+                    quantity: quantity,
+                    notes: notes
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                updateCartCount(data.total_items);
+                showToast('Item added to cart!', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            showToast('Error adding item to cart', 'error');
+        }
+    }
+
+    // Filter by category
+    document.querySelectorAll('[data-category]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            // Update active state
+            document.querySelectorAll('[data-category]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const category = this.dataset.category;
+
+            if (category === 'all') {
+                displayMenuItems(menuItems);
+            } else {
+                const filtered = menuItems.filter(item => item.category === category);
+                displayMenuItems(filtered);
+            }
+        });
+    });
+
+    // Search functionality
+    document.getElementById('search-input').addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+
+        if (searchTerm === '') {
+            displayMenuItems(menuItems);
+            return;
+        }
+
+        const filtered = menuItems.filter(item =>
+            item.name.toLowerCase().includes(searchTerm) ||
+            item.description.toLowerCase().includes(searchTerm)
+        );
+
+        displayMenuItems(filtered);
+    });
+
+    // Update cart count
+    function updateCartCount(count) {
+        document.querySelector('.cart-count').textContent = count;
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+        document.body.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+
+    // Load cart count
+    async function loadCartCount() {
+        try {
+            const response = await fetch('/api/cart');
+            const data = await response.json();
+
+            if (data.ok) {
+                updateCartCount(data.total_items);
+            }
+        } catch (error) {
+            console.error('Error loading cart count:', error);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        loadMenuItems();
+        loadCartCount();
+    });
+</script>
+{% endblock %}

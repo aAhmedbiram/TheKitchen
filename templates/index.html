@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}The Kitchen - {% if session.get('language') == 'ar' %}المطبخ{% else %}Home{% endif %}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white text-center py-5"
+    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <span class="hero-en">Welcome to The Kitchen</span>
+                    <span class="hero-ar" style="display:none;">مرحباً بكم في المطبخ</span>
+                </h1>
+                <p class="lead mb-4">
+                    <span class="hero-en">Delicious homemade food delivered to your doorstep</span>
+                    <span class="hero-ar" style="display:none;">طعام منزلي لذيذ يتم توصيله لباب منزلك</span>
+                </p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{{ url_for('menu') }}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-utensils me-2"></i>
+                        <span class="hero-en">View Menu</span>
+                        <span class="hero-ar" style="display:none;">عرض القائمة</span>
+                    </a>
+                    {% if not session.user_id %}
+                    <a href="{{ url_for('signup') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>
+                        <span class="hero-en">Sign Up</span>
+                        <span class="hero-ar" style="display:none;">إنشاء حساب</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{{ url_for('static', filename='images/hero-food.jpg') }}" alt="Food"
+                    class="img-fluid rounded-3 shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card p-4">
+                    <i class="fas fa-truck fa-3x text-primary mb-3"></i>
+                    <h3><span class="feature-en">Fast Delivery</span><span class="feature-ar"
+                            style="display:none;">توصيل سريع</span></h3>
+                    <p><span class="feature-en">Quick delivery to your location</span><span class="feature-ar"
+                            style="display:none;">توصيل سريع إلى موقعك</span></p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card p-4">
+                    <i class="fas fa-utensils fa-3x text-primary mb-3"></i>
+                    <h3><span class="feature-en">Quality Food</span><span class="feature-ar" style="display:none;">طعام
+                            عالي الجودة</span></h3>
+                    <p><span class="feature-en">Fresh ingredients and authentic recipes</span><span class="feature-ar"
+                            style="display:none;">مكونات طازجة ووصفات أصلية</span></p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card p-4">
+                    <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
+                    <h3><span class="feature-en">Easy Payment</span><span class="feature-ar" style="display:none;">دفع
+                            سهل</span></h3>
+                    <p><span class="feature-en">Multiple payment options available</span><span class="feature-ar"
+                            style="display:none;">خيارات دفع متعددة متاحة</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Items Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">
+            <span class="popular-en">Popular Items</span>
+            <span class="popular-ar" style="display:none;">الأصناف الشعبية</span>
+        </h2>
+        <div class="row" id="popular-items">
+            <!-- Items will be loaded via JavaScript -->
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">
+                <span class="popular-en">View Full Menu</span>
+                <span class="popular-ar" style="display:none;">عرض القائمة الكاملة</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">
+            <span class="how-en">How It Works</span>
+            <span class="how-ar" style="display:none;">كيف يعمل</span>
+        </h2>
+        <div class="row">
+            <div class="col-md-3 text-center mb-4">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
+                    <span class="fs-3 fw-bold">1</span>
+                </div>
+                <h5><span class="step-en">Browse Menu</span><span class="step-ar" style="display:none;">تصفح
+                        القائمة</span></h5>
+                <p><span class="step-en">Choose from our delicious dishes</span><span class="step-ar"
+                        style="display:none;">اختر من أطباقنا اللذيذة</span></p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
+                    <span class="fs-3 fw-bold">2</span>
+                </div>
+                <h5><span class="step-en">Place Order</span><span class="step-ar" style="display:none;">اطلب الآن</span>
+                </h5>
+                <p><span class="step-en">Add items to cart and checkout</span><span class="step-ar"
+                        style="display:none;">أضف العناصر إلى السلة وأكمل الطلب</span></p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
+                    <span class="fs-3 fw-bold">3</span>
+                </div>
+                <h5><span class="step-en">Pay Advance</span><span class="step-ar" style="display:none;">ادفع
+                        المقدم</span></h5>
+                <p><span class="step-en">Pay 20% advance to confirm</span><span class="step-ar"
+                        style="display:none;">ادفع 20% مقدم للتأكيد</span></p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    style="width: 80px; height: 80px;">
+                    <span class="fs-3 fw-bold">4</span>
+                </div>
+                <h5><span class="step-en">Enjoy Food</span><span class="step-ar" style="display:none;">استمتع
+                        بالطعام</span></h5>
+                <p><span class="step-en">Get your food delivered fresh</span><span class="step-ar"
+                        style="display:none;">استلم طعامك طازجاً</span></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load popular items
+    async function loadPopularItems() {
+        try {
+            const response = await fetch('/api/menu/available');
+            const data = await response.json();
+
+            if (data.ok) {
+                const items = data.items.slice(0, 6); // Show first 6 items
+                const container = document.getElementById('popular-items');
+
+                items.forEach(item => {
+                    const itemCard = `
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <img src="${item.image_urls[0] || '/static/images/placeholder.jpg'}" class="card-img-top" alt="${item.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${item.name}</h5>
+                                <p class="card-text">${item.description}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 text-primary">${item.price} EGP</span>
+                                    <button class="btn btn-primary btn-sm" onclick="addToCart(${item.id})">
+                                        <i class="fas fa-cart-plus me-1"></i>
+                                        <span class="add-en">Add</span>
+                                        <span class="add-ar" style="display:none;">أضف</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                    container.innerHTML += itemCard;
+                });
+            }
+        } catch (error) {
+            console.error('Error loading popular items:', error);
+        }
+    }
+
+    // Add to cart function
+    async function addToCart(itemId) {
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    menu_item_id: itemId,
+                    quantity: 1
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                updateCartCount(data.total_items);
+                showToast('Item added to cart!', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            showToast('Error adding item to cart', 'error');
+        }
+    }
+
+    // Update cart count
+    function updateCartCount(count) {
+        document.querySelector('.cart-count').textContent = count;
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+        // Add to page
+        document.body.appendChild(toast);
+
+        // Show toast
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        // Remove after hidden
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+
+    // Load items on page load
+    document.addEventListener('DOMContentLoaded', loadPopularItems);
+
+    // Load cart count
+    async function loadCartCount() {
+        try {
+            const response = await fetch('/api/cart');
+            const data = await response.json();
+
+            if (data.ok) {
+                updateCartCount(data.total_items);
+            }
+        } catch (error) {
+            console.error('Error loading cart count:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCartCount);
+</script>
+{% endblock %}

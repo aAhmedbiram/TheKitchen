@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}{% if session.get('language') == 'ar' %}السلة{% else %}Cart{% endif %} - The Kitchen{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">
+        <span class="cart-en">Shopping Cart</span>
+        <span class="cart-ar" style="display:none;">سلة التسوق</span>
+    </h1>
+
+    <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+            <div id="cart-items">
+                <!-- Items will be loaded via JavaScript -->
+            </div>
+
+            <!-- Empty Cart -->
+            <div id="empty-cart" class="text-center py-5" style="display:none;">
+                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">
+                    <span class="empty-en">Your cart is empty</span>
+                    <span class="empty-ar" style="display:none;">سلتك فارغة</span>
+                </h4>
+                <p class="text-muted mb-4">
+                    <span class="empty-en">Add some delicious items from our menu</span>
+                    <span class="empty-ar" style="display:none;">أضف بعض العناصر اللذيذة من قائمتنا</span>
+                </p>
+                <a href="{{ url_for('menu') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-utensils me-2"></i>
+                    <span class="empty-en">Browse Menu</span>
+                    <span class="empty-ar" style="display:none;">تصفح القائمة</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <span class="summary-en">Order Summary</span>
+                        <span class="summary-ar" style="display:none;">ملخص الطلب</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><span class="summary-en">Subtotal</span><span class="summary-ar"
+                                style="display:none;">المجموع الفرعي</span></span>
+                        <span id="subtotal">0 EGP</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><span class="summary-en">Delivery Fee</span><span class="summary-ar"
+                                style="display:none;">رسوم التوصيل</span></span>
+                        <span id="delivery-fee">40-80 EGP</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span><span class="summary-en">Total</span><span class="summary-ar"
+                                style="display:none;">الإجمالي</span></span>
+                        <span id="total" class="h5 text-primary">0 EGP</span>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span class="summary-en">20% advance payment required</span>
+                            <span class="summary-ar" style="display:none;">مطلوب دفع مقدم 20%</span>
+                        </small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-lg" id="checkout-btn" onclick="proceedToCheckout()" disabled>
+                            <i class="fas fa-credit-card me-2"></i>
+                            <span class="summary-en">Proceed to Checkout</span>
+                            <span class="summary-ar" style="display:none;">المتابعة للدفع</span>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="clearCart()">
+                            <i class="fas fa-trash me-2"></i>
+                            <span class="summary-en">Clear Cart</span>
+                            <span class="summary-ar" style="display:none;">تفريغ السلة</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Info -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <span class="info-en">Delivery Information</span>
+                        <span class="info-ar" style="display:none;">معلومات التوصيل</span>
+                    </h6>
+                    <p class="small text-muted">
+                        <span class="info-en">Delivery fee will be set by admin (40-80 EGP)</span>
+                        <span class="info-ar" style="display:none;">سيتم تحديد رسوم التوصيل من قبل الإدارة (40-80
+                            جنيه)</span>
+                    </p>
+                    <p class="small text-muted">
+                        <span class="info-en">Estimated delivery time: 30-45 minutes</span>
+                        <span class="info-ar" style="display:none;">وقت التوصيل المتوقع: 30-45 دقيقة</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span class="modal-en">Edit Item</span>
+                    <span class="modal-ar" style="display:none;">تعديل العنصر</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="edit-quantity" class="form-label">
+                        <span class="modal-en">Quantity</span>
+                        <span class="modal-ar" style="display:none;">الكمية</span>
+                    </label>
+                    <div class="input-group" style="width: 150px;">
+                        <button class="btn btn-outline-secondary" type="button"
+                            onclick="decreaseEditQuantity()">-</button>
+                        <input type="number" class="form-control text-center" id="edit-quantity" value="1" min="1"
+                            max="99">
+                        <button class="btn btn-outline-secondary" type="button"
+                            onclick="increaseEditQuantity()">+</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="edit-notes" class="form-label">
+                        <span class="modal-en">Special Notes</span>
+                        <span class="modal-ar" style="display:none;">ملاحظات خاصة</span>
+                        <small class="text-muted">(<span class="modal-en">optional</span><span class="modal-ar"
+                                style="display:none;">اختياري</span>)</small>
+                    </label>
+                    <textarea class="form-control" id="edit-notes" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <span class="modal-en">Cancel</span>
+                    <span class="modal-ar" style="display:none;">إلغاء</span>
+                </button>
+                <button type="button" class="btn btn-primary" onclick="updateCartItem()">
+                    <span class="modal-en">Update</span>
+                    <span class="modal-ar" style="display:none;">تحديث</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let cartItems = [];
+    let currentEditItem = null;
+
+    // Load cart items
+    async function loadCartItems() {
+        try {
+            const response = await fetch('/api/cart');
+            const data = await response.json();
+
+            if (data.ok) {
+                cartItems = data.items;
+                displayCartItems();
+                updateSummary(data.subtotal, data.total_items);
+            } else {
+                showToast('Error loading cart', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading cart items:', error);
+            showToast('Error loading cart', 'error');
+        }
+    }
+
+    // Display cart items
+    function displayCartItems() {
+        const container = document.getElementById('cart-items');
+        const emptyCart = document.getElementById('empty-cart');
+
+        if (cartItems.length === 0) {
+            container.innerHTML = '';
+            emptyCart.style.display = 'block';
+            return;
+        }
+
+        emptyCart.style.display = 'none';
+
+        container.innerHTML = cartItems.map(item => `
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-2">
+                        <img src="${item.menu_item.image_urls[0] || '/static/images/placeholder.jpg'}" 
+                             class="img-fluid rounded" 
+                             alt="${item.menu_item.name}">
+                    </div>
+                    <div class="col-md-4">
+                        <h5>${item.menu_item.name}</h5>
+                        <p class="text-muted small">${item.menu_item.description}</p>
+                        ${item.notes ? `<p class="small text-info"><i class="fas fa-sticky-note me-1"></i>${item.notes}</p>` : ''}
+                    </div>
+                    <div class="col-md-2">
+                        <div class="input-group" style="width: 100px;">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                            <input type="number" class="form-control text-center" value="${item.quantity}" min="1" max="99" readonly>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="h5">${item.menu_item.price} EGP</div>
+                        <small class="text-muted">${item.total_price} EGP</small>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <div class="btn-group">
+                            <button class="btn btn-outline-primary btn-sm" onclick="openEditModal(${item.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="removeFromCart(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    }
+
+    // Update summary
+    function updateSummary(subtotal, totalItems) {
+        document.getElementById('subtotal').textContent = `${subtotal} EGP`;
+
+        // Enable/disable checkout button
+        const checkoutBtn = document.getElementById('checkout-btn');
+        checkoutBtn.disabled = totalItems === 0;
+
+        if (totalItems > 0) {
+            // Calculate estimated total (using minimum delivery fee)
+            const estimatedTotal = subtotal + 40;
+            document.getElementById('total').textContent = `${estimatedTotal} EGP`;
+        } else {
+            document.getElementById('total').textContent = '0 EGP';
+        }
+    }
+
+    // Update quantity
+    async function updateQuantity(itemId, newQuantity) {
+        if (newQuantity < 1 || newQuantity > 99) return;
+
+        try {
+            const response = await fetch(`/api/cart/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    quantity: newQuantity
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                cartItems = data.items;
+                displayCartItems();
+                updateSummary(data.subtotal, data.total_items);
+                showToast('Cart updated', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            showToast('Error updating quantity', 'error');
+        }
+    }
+
+    // Remove from cart
+    async function removeFromCart(itemId) {
+        if (!confirm('Are you sure you want to remove this item?')) return;
+
+        try {
+            const response = await fetch(`/api/cart/${itemId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                cartItems = data.items;
+                displayCartItems();
+                updateSummary(data.subtotal, data.total_items);
+                showToast('Item removed from cart', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
+            showToast('Error removing item', 'error');
+        }
+    }
+
+    // Clear cart
+    async function clearCart() {
+        if (!confirm('Are you sure you want to clear your entire cart?')) return;
+
+        try {
+            const response = await fetch('/api/cart', {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                cartItems = [];
+                displayCartItems();
+                updateSummary(0, 0);
+                showToast('Cart cleared', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+            showToast('Error clearing cart', 'error');
+        }
+    }
+
+    // Open edit modal
+    function openEditModal(itemId) {
+        currentEditItem = cartItems.find(item => item.id === itemId);
+
+        if (!currentEditItem) return;
+
+        document.getElementById('edit-quantity').value = currentEditItem.quantity;
+        document.getElementById('edit-notes').value = currentEditItem.notes || '';
+
+        const modal = new bootstrap.Modal(document.getElementById('editItemModal'));
+        modal.show();
+    }
+
+    // Quantity controls in modal
+    function increaseEditQuantity() {
+        const input = document.getElementById('edit-quantity');
+        input.value = Math.min(99, parseInt(input.value) + 1);
+    }
+
+    function decreaseEditQuantity() {
+        const input = document.getElementById('edit-quantity');
+        input.value = Math.max(1, parseInt(input.value) - 1);
+    }
+
+    // Update cart item from modal
+    async function updateCartItem() {
+        if (!currentEditItem) return;
+
+        const quantity = parseInt(document.getElementById('edit-quantity').value);
+        const notes = document.getElementById('edit-notes').value;
+
+        try {
+            const response = await fetch(`/api/cart/${currentEditItem.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    quantity: quantity,
+                    notes: notes
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                cartItems = data.items;
+                displayCartItems();
+                updateSummary(data.subtotal, data.total_items);
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
+                modal.hide();
+
+                showToast('Item updated', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Error updating item:', error);
+            showToast('Error updating item', 'error');
+        }
+    }
+
+    // Proceed to checkout
+    function proceedToCheckout() {
+        if (cartItems.length === 0) {
+            showToast('Your cart is empty', 'error');
+            return;
+        }
+
+        window.location.href = '/checkout';
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+        document.body.appendChild(toast);
+
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadCartItems);
+</script>
+{% endblock %}

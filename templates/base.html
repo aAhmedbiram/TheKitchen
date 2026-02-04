@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('language', 'en') }}" dir="{% if session.get('language') == 'ar' %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Kitchen{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-utensils me-2"></i>
+                <span class="brand-en">The Kitchen</span>
+                <span class="brand-ar" style="display:none;">المطبخ</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <span class="nav-en">Home</span>
+                            <span class="nav-ar" style="display:none;">الرئيسية</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('menu') }}">
+                            <span class="nav-en">Menu</span>
+                            <span class="nav-ar" style="display:none;">القائمة</span>
+                        </a>
+                    </li>
+                    {% if session.user_id %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('orders') }}">
+                            <span class="nav-en">My Orders</span>
+                            <span class="nav-ar" style="display:none;">طلباتي</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <!-- Language Switcher -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe me-1"></i>
+                            <span class="lang-en">EN</span>
+                            <span class="lang-ar" style="display:none;">AR</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('set_language', lang='en') }}">
+                                    <i class="flag-icon flag-icon-us me-2"></i>English
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('set_language', lang='ar') }}">
+                                    <i class="flag-icon flag-icon-eg me-2"></i>العربية
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Cart -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ url_for('cart') }}">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="cart-count badge bg-danger rounded-pill">0</span>
+                            <span class="cart-en ms-1">Cart</span>
+                            <span class="cart-ar ms-1" style="display:none;">السلة</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Auth -->
+                    {% if session.user_id %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>
+                            <span class="user-name">{{ session.get('user_name', 'User') }}</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('orders') }}">
+                                <span class="dropdown-en">My Orders</span>
+                                <span class="dropdown-ar" style="display:none;">طلباتي</span>
+                            </a></li>
+                            {% if session.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin_panel') }}">
+                                <span class="dropdown-en">Admin Panel</span>
+                                <span class="dropdown-ar" style="display:none;">لوحة التحكم</span>
+                            </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <span class="dropdown-en">Logout</span>
+                                <span class="dropdown-ar" style="display:none;">تسجيل الخروج</span>
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('signin') }}">
+                            <span class="auth-en">Login</span>
+                            <span class="auth-ar" style="display:none;">تسجيل الدخول</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('signup') }}">
+                            <span class="auth-en">Sign Up</span>
+                            <span class="auth-ar" style="display:none;">إنشاء حساب</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><span class="footer-en">The Kitchen</span><span class="footer-ar" style="display:none;">المطبخ</span></h5>
+                    <p class="footer-en">Delicious food delivered to your doorstep</p>
+                    <p class="footer-ar" style="display:none;">طعام لذيذ يتم توصيله لباب منزلك</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><span class="footer-en">Contact</span><span class="footer-ar" style="display:none;">اتصل بنا</span></h5>
+                    <p><i class="fas fa-phone me-2"></i>01012345678</p>
+                    <p><i class="fas fa-envelope me-2"></i>contact@thekitchen.com</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><span class="footer-en">Follow Us</span><span class="footer-ar" style="display:none;">تابعنا</span></h5>
+                    <div class="social-links">
+                        <a href="#" class="text-light me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 The Kitchen. <span class="footer-en">All rights reserved.</span><span class="footer-ar" style="display:none;">جميع الحقوق محفوظة.</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        // Language handling
+        const currentLang = localStorage.getItem('language') || 'en';
+        setLanguage(currentLang);
+        
+        function setLanguage(lang) {
+            const isArabic = lang === 'ar';
+            
+            // Update HTML attributes
+            document.documentElement.lang = lang;
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            
+            // Show/hide language-specific elements
+            document.querySelectorAll('.en, .nav-en, .cart-en, .auth-en, .footer-en, .dropdown-en, .brand-en').forEach(el => {
+                el.style.display = isArabic ? 'none' : '';
+            });
+            document.querySelectorAll('.ar, .nav-ar, .cart-ar, .auth-ar, .footer-ar, .dropdown-ar, .brand-ar').forEach(el => {
+                el.style.display = isArabic ? '' : 'none';
+            });
+            
+            // Update language switcher display
+            document.querySelector('.lang-en').style.display = isArabic ? 'none' : '';
+            document.querySelector('.lang-ar').style.display = isArabic ? '' : 'none';
+        }
+        
+        // Logout function
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
