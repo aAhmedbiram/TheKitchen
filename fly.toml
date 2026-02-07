@@ -1,34 +1,31 @@
-app = 'the-kitchen-app'
+# fly.toml app configuration file generated for the-kitchen-restaurant on 2026-02-07T23:33:24+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'the-kitchen-restaurant'
 primary_region = 'ams'
 
 [build]
-  builder = 'heroku/buildpacks:python'
+  dockerfile = 'Dockerfile'
+
+[deploy]
+  release_command = 'python -c "from app import app; app.app_context().push(); from extensions import db; db.create_all(); print(\"Database tables created!\")"'
 
 [env]
-  PORT = '8080'
   FLASK_ENV = 'production'
+  PORT = '8080'
+  SECRET_KEY = 'the-kitchen-production-secret-key-2024-very-long-random-string'
+  NEON_CONNECTION_STRING = 'postgresql://neondb_owner:npg_3uxsWqBoh5HY@ep-aged-poetry-aix5dc0j-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 
 [http_service]
   internal_port = 8080
-  protocol = 'tcp'
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
 
-  [[http_service.checks]]
-    protocol = 'tcp'
-    interval = '15s'
-    timeout = '2s'
-    grace_period = '5s'
-
-    [[http_service.checks.match]]
-      status = 200
-
 [[vm]]
   cpu_kind = 'shared'
   cpus = 1
   memory_mb = 256
-
-[deploy]
-  release_command = 'python -c "from app import create_app; app = create_app(); app.app_context().push(); from extensions import db; db.create_all(); print(\"Database tables created!\")"'
