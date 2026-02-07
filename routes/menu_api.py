@@ -15,23 +15,31 @@ def _bad_request(message: str, status_code: int = 400):
 @menu_api.get("/menu")
 @cross_origin()
 def list_menu_items():
-    language = get_current_language()
-    menu_items = MenuItem.query.order_by(MenuItem.id.desc()).all()
-    return jsonify({
-        "ok": True,
-        "items": [item.to_dict(language) for item in menu_items]
-    })
+    try:
+        language = get_current_language()
+        menu_items = MenuItem.query.order_by(MenuItem.id.desc()).all()
+        return jsonify({
+            "ok": True,
+            "items": [item.to_dict(language) for item in menu_items]
+        })
+    except Exception as e:
+        print(f"Error in list_menu_items: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @menu_api.get("/menu/available")
 @cross_origin()
 def list_available_menu_items():
-    language = get_current_language()
-    menu_items = MenuItem.query.filter_by(is_available=True).order_by(MenuItem.id.desc()).all()
-    return jsonify({
-        "ok": True,
-        "items": [item.to_dict(language) for item in menu_items]
-    })
+    try:
+        language = get_current_language()
+        menu_items = MenuItem.query.filter_by(is_available=True).order_by(MenuItem.id.desc()).all()
+        return jsonify({
+            "ok": True,
+            "items": [item.to_dict(language) for item in menu_items]
+        })
+    except Exception as e:
+        print(f"Error in list_available_menu_items: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 @menu_api.get("/menu/<int:item_id>")
