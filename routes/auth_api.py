@@ -16,41 +16,54 @@ def _bad_request(message: str, status_code: int = 400):
 @auth_api.post("/auth/register")
 @cross_origin()
 def register():
-    data = request.get_json(silent=True) or {}
-    
-    required = ["name", "email", "password"]
-    missing = [k for k in required if not data.get(k)]
-    if missing:
-        return _bad_request(f"Missing fields: {', '.join(missing)}")
-    
-    email = data["email"].strip().lower()
-    phone = data.get("phone", "").strip()
+    try:
+        data = request.get_json(silent=True) or {}
+        
+        required = ["name", "email", "password"]
+        missing = [k for k in required if not data.get(k)]
+        if missing:
+            return _bad_request(f"Missing fields: {', '.join(missing)}")
+        
+        email = data["email"].strip().lower()
+        phone = data.get("phone", "").strip()
 
-    # Check if user already exists
-    if User.query.filter_by(email=email).first():
-        return _bad_request("Email already registered", 409)
-    
-    if phone and User.query.filter_by(phone=phone).first():
-        return _bad_request("Phone already registered", 409)
-    
-    # Create new user
-    user = User(
-        name=data["name"].strip(),
-        email=email,
-        phone=phone,
-        password_hash=generate_password_hash(data["password"])
-    )
-    
-    db.session.add(user)
-    db.session.commit()
-    
-    user_dict = user.to_dict()
-    login_user(user_dict)
-    
-    return jsonify({
-        "ok": True, 
-        "user": user_dict
-    }), 201
+        print(f"Register attempt: {email}, {phone}")
+
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            print(f"User already exists: {existing_user.email}")
+            return _bad_request("Email already registered", 409)
+        
+        if phone and User.query.filter_by(phone=phone).first():
+            return _bad_request("Phone already registered", 409)
+        
+        # Create new user
+        user = User(
+            name=data["name"].strip(),
+            email=email,
+            phone=phone,
+            password_hash=generate_password_hash(data["password"])
+        )
+        
+        print(f"Creating user: {user.name}, {user.email}")
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        print(f"User saved with ID: {user.id}")
+        
+        user_dict = user.to_dict()
+        login_user(user_dict)
+        
+        return jsonify({
+            "ok": True,
+            "user": user_dict
+        })
+    except Exception as e:
+        print(f"Error in register: {e}")
+        db.session.rollback()
+        return _bad_request(f"Registration failed: {str(e)}"), 500
 
 
 @auth_api.post("/auth/login")
